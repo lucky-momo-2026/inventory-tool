@@ -14,6 +14,7 @@ with open('data.csv', 'r', encoding='utf-8') as f:
 
     out_of_stock = []  # 在庫切れ商品を保存するリスト
     low_stock = []     # 在庫が少ない商品を保存するリスト
+    supplier_summary_rows = []  #csvに出力する仕入先ごとの集計結果を保存
 
     rows = list(csv.DictReader(f))  
 
@@ -56,6 +57,7 @@ with open('data.csv', 'r', encoding='utf-8') as f:
     #集計結果を表示する
     for supplier, count in sorted(supplier_count.items(), key=lambda X: X[1], reverse=True): #件数を多い順にソート
         print(f'仕入先：{supplier} → {count}件')
+        supplier_summary_rows.append(['仕入先集計', supplier, count])  #csv出力用に１行ずつ保存する
     
     print("------------------")
     print(f"合計：{total}件")
@@ -70,3 +72,5 @@ with open(OUTPUT_FILE, 'w', encoding='cp932', newline='')as f:  #在庫チェッ
 
     for row in low_stock:  #在庫少
         writer.writerow(['在庫少', row['item'], row['stock'], row['supplier']])
+
+    writer.writerow(['合計',total])
