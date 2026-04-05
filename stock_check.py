@@ -1,5 +1,6 @@
 import csv
 import sys #コマンドライン引数を引き受けるため
+from datetime import datetime  #現在日時を取得するために追加（実務では必須レベル）
 
 OUTPUT_FILE ='stock_result.csv'  #在庫チェックの結果を書き出すCSVファイル
 
@@ -65,6 +66,9 @@ with open('data.csv', 'r', encoding='utf-8') as f:
 with open(OUTPUT_FILE, 'w', encoding='cp932', newline='')as f:  #在庫チェック結果をCSVに書き出す cp932はExcelで見れる
     writer = csv.writer(f)
 
+    now = datetime.now().strftime('%y-%m-%d %H:%M:%S')
+    writer.writerow(['出力日時', now, '', ''])
+
     writer.writerow(['種類', '商品名', '在庫数', '仕入先'])  #ヘッダーの行
 
     for row in out_of_stock:  #在庫切れ
@@ -73,7 +77,7 @@ with open(OUTPUT_FILE, 'w', encoding='cp932', newline='')as f:  #在庫チェッ
     for row in low_stock:  #在庫少
         writer.writerow(['在庫少', row['item'], row['stock'], row['supplier']])
 
-    writer.writerow(['合計',total])
+    writer.writerow(['合計', '', total, ''])
 
     writer.writerow([])  #空行を入れて見やすくする
     writer.writerow(['---仕入先ごとの集計---']) #見出し行（実務的に区切りを明確にする）
