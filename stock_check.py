@@ -75,6 +75,9 @@ with open(OUTPUT_FILE, 'w', encoding='cp932', newline='')as f:  #在庫チェッ
 
     writer.writerow(['合計',total])
 
+    writer.writerow([])  #空行を入れて見やすくする
+    writer.writerow(['---仕入先ごとの集計---']) #見出し行（実務的に区切りを明確にする）
+
     #仕入先事の集計をcsvの下に追加する
     for row in supplier_summary_rows:
         writer.writerow(row)
