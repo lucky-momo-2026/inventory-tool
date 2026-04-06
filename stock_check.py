@@ -17,7 +17,21 @@ with open('data.csv', 'r', encoding='utf-8') as f:
     low_stock = []     # 在庫が少ない商品を保存するリスト
     supplier_summary_rows = []  #csvに出力する仕入先ごとの集計結果を保存
 
-    rows = list(csv.DictReader(f))  
+    supplier_rows = {}   # {仕入先: [商品行, 商品行, ...]} の形式でデータを保持（仕入先別CSV出力用）
+    
+
+    rows = list(csv.DictReader(f)) 
+
+    #仕入先ごとに商品データをまとめる（仕入先別ｃｓｖ出力の準備）
+    for row in rows:
+        supplier = row['supplier']
+
+        #まだ登録されていない仕入先なら空リストを作る
+        if supplier not in supplier_rows:
+            supplier_rows[supplier] = []
+
+        #その仕入先のリストに現在の行を追加
+        supplier_rows[supplier].append(row)
 
     print('在庫切れの商品の一覧')  #出力の見出し
     print('------------------')
@@ -69,7 +83,7 @@ with open(OUTPUT_FILE, 'w', encoding='cp932', newline='')as f:  #在庫チェッ
     now = datetime.now().strftime('%y-%m-%d %H:%M:%S')
     writer.writerow(['出力日時', now, '', ''])
 
-    writer.writerow(['種類', '商品名', '在庫数', '仕入先'])  #ヘッダーの行
+    writer.writerow(['カテゴリ', '商品名', '在庫数', '仕入先'])  #ヘッダーの行
 
     for row in out_of_stock:  #在庫切れ
         writer.writerow(['在庫切れ', row['item'], row['stock'], row['supplier']])
@@ -82,6 +96,21 @@ with open(OUTPUT_FILE, 'w', encoding='cp932', newline='')as f:  #在庫チェッ
     writer.writerow([])  #空行を入れて見やすくする
     writer.writerow(['---仕入先ごとの集計---']) #見出し行（実務的に区切りを明確にする）
 
+    writer = csv.writer(f)
+ 
     #仕入先事の集計をcsvの下に追加する
     for row in supplier_summary_rows:
         writer.writerow(row)
+
+#仕入先ごとに商品データを１社ずつ取り出す
+for supplier, supplier_items in supplier_rows.items():
+    supplier_file = f'{supplier}.csv'  #仕入先ごとのファイル名を作る
+
+    with open(supplier_file, 'w', encoding='cp932', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['カテゴリ', '商品名', '在庫数', '仕入先'])
+
+        for row in supplier_items:
+            if int(row['stock']) <= LOW_STOCK_THRESHOLD:  # 在庫数がしきい値以下（LOW_STOCK_THRESHOLD）の商品のみCSV出力（補充対象）
+                writer.writerow([row['category'], row['item'], row['stock'], row['supplier']])
+            
